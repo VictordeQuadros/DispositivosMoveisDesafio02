@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Desafio02</string>
+    <string-array name="activity_valores_moeda">
+        <item>BRL</item>
+        <item>EUR</item>
+        <item>USD</item>
+    </string-array>
+    <string name="valor_monetario">Valor</string>
+    <string name="converter">Converter</string>
+    <string name="de">De:</string>
+    <string name="para">Para:</string>
+</resources>
