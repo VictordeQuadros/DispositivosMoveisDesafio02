@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     Button btnConverter;
     TextView tvData, tvResultado;
     Spinner spnDe, spnPara;
-    String stringData, stringResultado, moedaStringDe, moedaStringPara;
+    String stringData, stringResultado, moedaStringDe, moedaStringPara, error;
 
 
     @Override
@@ -42,58 +42,55 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-
-                String urlStr = "https://economia.awesomeapi.com.br/last/" + moedaStringDe + "-"
-                        + moedaStringPara;
-                HttpAsyncTask task = new HttpAsyncTask();
-                task.execute(urlStr);
-
-                JSONObject obj = null;
-                String logr = "Passou";
-                String resposta = "Erro";
-
-//                try {
-//                    resposta = task.get();
-//                } catch (ExecutionException e) {
-//                    logr = "Erro01";
-//                } catch (InterruptedException e) {
-//                    logr = "Erro01";
-//                }
-//
-//                obj = new JSONObject(resposta);
-                try {
-                    resposta = task.get();
-//                obj = new JSONObject(resposta);
-//                urlStr =   moedaStringDe + moedaStringPara;
-//                JSONObject jsonObject = obj.getJSONObject(moedaStringDe + moedaStringPara);
-
-                } catch (Exception e) {
-                    urlStr =   moedaStringDe + moedaStringPara;
-                    logr = "Erro";
+                if(moedaStringDe.equals(moedaStringPara)){
+                    tvResultado.setText("Moedas iguais!");
+                    tvData.setText("Moedas iguais!");
+                    return;
                 }
 
-//                try {
-//                    resposta = task.get();
-//                    obj = new JSONObject(resposta);
-//                    JSONObject jsonObject = obj.getJSONObject(moedaStringDe + moedaStringPara);
-//
-//                    logr = jsonObject.getString(moedaStringDe + moedaStringPara);
-//                } catch (Exception e) {
-//                    logr = "Erro";
-//                }
+                try {
+                    getConverter();
+                    formatStringDate();
+                    saveOnSharedPreferences();
 
-
-                SharedPreferences prefs = getSharedPreferences("desafio02", MODE_PRIVATE);
-                SharedPreferences.Editor editor = prefs.edit();
-
-                editor.putString("chaveData", moedaStringDe);
-                editor.putString("chaveResultado", moedaStringPara);
-                editor.commit();
-                tvData.setText(moedaStringDe);
-                tvResultado.setText(moedaStringPara);
+                } catch (Exception e) {
+                    tvResultado.setText("Erro na conversão!");
+                    tvData.setText("Erro na conversão!");
+                }
             }
         });
 
+    }
+
+    private void getConverter() throws ExecutionException, InterruptedException, JSONException {
+        String urlStr = "https://economia.awesomeapi.com.br/last/" + moedaStringDe + "-"
+                + moedaStringPara;
+        HttpAsyncTask task = new HttpAsyncTask();
+        task.execute(urlStr);
+        String resposta = task.get();
+        JSONObject obj = new JSONObject(resposta);
+        JSONObject jsonObject = obj.getJSONObject(moedaStringDe + moedaStringPara);
+        stringResultado = moedaStringDe + "//" + moedaStringPara + ":" +
+                jsonObject.getString("bid");
+        stringData = jsonObject.getString("create_date");
+    }
+
+    private void saveOnSharedPreferences() {
+        SharedPreferences prefs = getSharedPreferences("desafio02", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        editor.putString("chaveResultado", stringResultado);
+        editor.putString("chaveData", stringData);
+        editor.commit();
+        tvResultado.setText(stringResultado);
+        tvData.setText(stringData);
+    }
+
+    private void formatStringDate() {
+        String[] split = stringData.split("-");
+        String[] splitTime = split[2].split(" ");
+        stringData = splitTime[0] + "/" + split[1] + "/" + split[0] + " "
+                + splitTime[1];
     }
 
     private void init() {
